@@ -19,10 +19,9 @@ def pricing(df, columns, coeffs=None, debug=False, price_column=None):
     :return: a matrix with the computed coeffs (if coeffs is provided, return the same coeffs).
     """
     df[u'intrinsic'] = -1
-    df[u'budget'] = 2 * df[u'cost'] + 1
     a = df.as_matrix(columns)
     if coeffs is None:
-        b = df.as_matrix([u'budget'])
+        b = df.as_matrix([u'cost'])
         coeffs = numpy.linalg.lstsq(a, b)[0]
         if debug:
             print(pandas.DataFrame(coeffs.T, columns=columns))

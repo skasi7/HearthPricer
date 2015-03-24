@@ -60,15 +60,15 @@ def _process_card(card):
     attack = card[u'attack']
     health = card[u'health']
 
+    # Windfury
+    if u'Windfury' in mechanics:
+        card[u'windfury'] = attack
     # Charge
     if u'Charge' in mechanics:
-        card[u'charge'] = attack
+        card[u'charge'] = attack + card[u'windfury']
     # Stealth
     if u'Stealth' in mechanics:
         card[u'stealth'] = 1
-    # Windfury
-    if u'Windfury' in mechanics:
-        card[u'windfury'] = attack + card[u'charge']
     # Taunt
     if u'Taunt' in mechanics:
         card[u'taunt'] = health
