@@ -106,6 +106,14 @@ _text_mechanics_processors = list()
 
 
 def _mechanic_re_processor_factory(re_pattern, attribute_name, attribute_mod=None):
+    """
+    Generic function factory to generate regular expression based processors.
+
+    :param re_pattern: Regular expression pattern object to match with.
+    :param attribute_name: Attribute name to save the value to.
+    :param attribute_mod: Group name inside the regular expression to extract.
+    :return: a processor for the provided regular expression.
+    """
     def _mechanic_re_processor(card, text_mechanics):
         def repl(m):
             groupdict = m.groupdict()
@@ -132,27 +140,54 @@ def _mechanic_re_processor_factory(re_pattern, attribute_name, attribute_mod=Non
 
 
 def _mechanic_text_processor_factory(text_pattern, attribute_name):
+    """
+    Generic function factory to generate text based processors.
+
+    :param text_pattern: Text pattern to look for.
+    :param attribute_name: Attribute name to save the value to.
+    :return: a processor for the provided text pattern.
+    """
     def _mechanic_text_processor(card, text_mechanics):
         present = text_pattern in text_mechanics
         if present:
             card[attribute_name] = 1
-            text_mechanics = text_mechanics.replace(_poisonous_mechanic_text, '')
+            text_mechanics = text_mechanics.replace(text_pattern, '')
         return text_mechanics
     return _mechanic_text_processor
 
-
+###
+# Overload mechanic.
+###
 _overload_mechanic_re = re.compile(r'Overload: \((?P<value>\d)\)')
 _text_mechanics_processors.append(_mechanic_re_processor_factory(_overload_mechanic_re, u'overload'))
 
+###
+# Poisonous mechanic.
+###
 _poisonous_mechanic_text = u'Destroy any minion damaged by this minion'
 _text_mechanics_processors.append(_mechanic_text_processor_factory(_poisonous_mechanic_text, u'poisonous'))
 
-_watcher_mechanic_text = u"Can't Attack"
-# _text_mechanics_processors.append(_mechanic_text_processor_factory(_watcher_mechanic_text, u'watcher'))
+###
+# Pacifist mechanic.
+###
+_pacifist_mechanic_text = u"Can't Attack"
+# _text_mechanics_processors.append(_mechanic_text_processor_factory(_pacifist_mechanic_text, u'pacifist'))
 
-_faerie_mechanic_text = u"Can't be targeted by spells or Hero Powers"
-_text_mechanics_processors.append(_mechanic_text_processor_factory(_faerie_mechanic_text, u'faerie'))
+###
+# Elusive mechanic.
+###
+_elusive_mechanic_text = u"Can't be targeted by spells or Hero Powers"
+_text_mechanics_processors.append(_mechanic_text_processor_factory(_elusive_mechanic_text, u'elusive'))
 
+###
+# Clumsy mechanic.
+###
+_clumsy_mechanic_text = u'50% chance to attack the wrong enemy'
+_text_mechanics_processors.append(_mechanic_text_processor_factory(_clumsy_mechanic_text, u'clumsy'))
+
+###
+# Deal damage mechanic. First expression.
+###
 _deal_hero_damage_mechanic_re = re.compile(r'(?P<prefix>\w+: )?Deal (?P<value>\d) damage to (?P<mod>.+)')
 _deal_hero_damage_mechanic_mod = {
     'each hero': (1, 1, 0), 'the enemy hero': (0, 1, 0), 'your hero': (1, 0, 0), 'all minions': (0, 0, 1),
@@ -161,13 +196,25 @@ _text_mechanics_processors.append(_mechanic_re_processor_factory(
     _deal_hero_damage_mechanic_re, (u'deal_own_hero_damage', u'deal_enemy_hero_damage', 'deal_board_damage'),
     attribute_mod=_deal_hero_damage_mechanic_mod))
 
+###
+# Deal damage mechanic. Second expression.
+###
 _deal_damage_mechanic_re = re.compile(r'(?P<prefix>\w+: )?Deal (?P<value>\d) damage( to a random enemy minion)?')
 _text_mechanics_processors.append(_mechanic_re_processor_factory(_deal_damage_mechanic_re, u'deal_damage'))
 
+###
+# Discard card mechanic.
+###
 _discard_card_mechanic_re = re.compile(r'(?P<prefix>\w+: )?Discard (?P<mod>\w+) random card(s)?')
 _discard_card_mechanic_mod = {'a': 1, 'two': 2}
 _text_mechanics_processors.append(_mechanic_re_processor_factory(
     _discard_card_mechanic_re, u'discard_card', attribute_mod=_discard_card_mechanic_mod))
+
+###
+# Spell damage mechanic.
+###
+_spell_damage_mechanic_re = re.compile(r'Spell Damage \+(?P<value>\d)')
+_text_mechanics_processors.append(_mechanic_re_processor_factory(_spell_damage_mechanic_re, u'spell_damage'))
 
 
 def _process_text_mechanics(card, discard_unknown_mechanics=True):
